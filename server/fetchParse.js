@@ -5,11 +5,21 @@
 (function () {
   'use strict';
 
-  var request = require('request'),
+  var $ = {},
+    request = require('request'),
     cheerio = require('cheerio'),
     config = require('./config.json');
 
   module.exports = {
+    /**
+     * Converts html to parsable object
+     * @param   {String} html HTML to be parsed
+     * @returns {Object} Parsed HTML
+     */
+    loadParser: function (html) {
+      $ = cheerio.load(html);
+    },
+
     /**
      * Fetches HTML content from a URL
      * @param {String} url URL to be fetched
@@ -26,25 +36,11 @@
     },
 
     /**
-     * Converts html to parsable object
-     * @param   {String} html HTML to be parsed
-     * @returns {Object} Parsed HTML
-     */
-    cheeriofy: function (html) {
-      var $ = '';
-      try {
-        $ = cheerio.load(html);
-      } finally {
-        return $;
-      }
-    },
-
-    /**
-     * Gets issue number for a parse issue html
+     * Gets issue number for a parsed issue html
      * @param   {Object} $ Parse HTML object
      * @returns {Number} Issue Number
      */
-    getIssueNumber: function ($) {
+    getIssueNumber: function () {
       var title = config.err.ERR1;
       try {
         // First integer is taken as the title
@@ -55,17 +51,75 @@
     },
 
     /**
-     * [[Description]]
-     * @param   {[[Type]]} $ [[Description]]
-     * @returns {[[Type]]} [[Description]]
+     * Gets issue date for a parsed issue html
+     * @returns {String} Date string
      */
-    getIssueDate: function ($) {
+    getIssueDate: function () {
       var date = config.err.ERR3;
       try {
         date = $('title').text().match(/(jan|feb|mar|apr|may|jun|jul|aug|sept|oct|nov|dec).*/i)[0] || date;
       } finally {
         return date;
       }
+    },
+
+    /**
+     * Checks if anchor node is a valid article Anchor
+     * @param   {Object} anchor Anchor object
+     * @returns {Boolean} Is article
+     */
+    isValidArticle: function (anchor) {
+      var anchorHref = $(anchor).attr('href');
+      return anchorHref.indexOf(config.identifier) !== -1;
+    },
+
+    filterJob: function () {
+
+    },
+
+    filterSponsored: function () {
+
+    },
+
+    getArticleTitle: function (anchor) {
+      return $(anchor).text();
+    },
+
+    getArticleLink: function (anchor) {
+      return $(anchor).attr('href');
+    },
+
+    getArticleSnippets: function (anchor) {
+      var parent = $(anchor).parent('td') || $(anchor).parent('li');
+      var children = parent.children();
+      var snippetNodes = [],
+        index;
+      
+      //---- something wrong here ----, needs fix //
+      for (index in children) {
+        snippetNodes.push($(children[index]).text());
+      }
+
+      return snippetNodes;
+    },
+
+    getArticles: function () {
+
+      var index, anchor, allAnchors = $('a'),
+        articles = [];
+
+      for (index in allAnchors) {
+        anchor = allAnchors[index];
+        if (this.isValidArticle(anchor)) {
+          articles.push({
+            title: this.getArticleTitle(anchor),
+            href: this.getArticleLink(anchor),
+            snippet: this.getArticleSnippets(anchor)
+          });
+        }
+      }
+
+      return articles;
     },
 
     /**
@@ -83,10 +137,12 @@
             err: err
           });
         } else {
-          var $ = self.cheeriofy(html);
+          // Set the parser
+          self.loadParser(html);
           cb({
-            issueNumber: self.getIssueNumber($),
-            issueDate: self.getIssueDate($)
+            issueNumber: self.getIssueNumber(),
+            issueDate: self.getIssueDate(),
+            articles: self.getArticles()
           });
         }
       });
