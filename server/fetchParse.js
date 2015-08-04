@@ -69,8 +69,14 @@
      * @returns {Boolean} Is article
      */
     isValidArticle: function (anchor) {
-      var anchorHref = $(anchor).attr('href');
-      return anchorHref.indexOf(config.identifier) !== -1;
+      var isValid = false;
+      try {
+        var anchorHref = $(anchor).attr('href');
+        // Contains the identifier and contains a text
+        isValid = anchorHref && anchorHref.indexOf(config.identifier) !== -1 && $(anchor).text();
+      } finally {
+        return isValid;
+      }
     },
 
     filterJob: function () {
@@ -81,28 +87,47 @@
 
     },
 
+    /**
+     * Gets article title from the anchor
+     * @param   {Object} anchor
+     * @returns {String} Title
+     */
     getArticleTitle: function (anchor) {
       return $(anchor).text();
     },
 
+    /**
+     * Gets link for the anchor
+     * @param   {Object} anchor
+     * @returns {String} Link
+     */
     getArticleLink: function (anchor) {
       return $(anchor).attr('href');
     },
 
+    /**
+     * Get's an article summary text and others
+     * @param   {[[Type]]} anchor [[Description]]
+     * @returns {[[Type]]} [[Description]]
+     */
     getArticleSnippets: function (anchor) {
+      // --- td as parent is not selecting whole region, try with tbody---
       var parent = $(anchor).parent('td') || $(anchor).parent('li');
-      var children = parent.children();
-      var snippetNodes = [],
-        index;
+      var articleText = this.getArticleTitle(anchor);
       
-      //---- something wrong here ----, needs fix //
-      for (index in children) {
-        snippetNodes.push($(children[index]).text());
-      }
-
-      return snippetNodes;
+      return parent.text().split('\n').filter(function (item) {
+        // Filter empty text nodes and node containing the article text
+        return item.trim() && item.indexOf(articleText) === -1;
+      }).map(function (item) {
+        // Trim spaces
+        return item.trim();
+      });
     },
 
+    /**
+     * Gets all articles for the issue
+     * @returns {Array} Articles array
+     */
     getArticles: function () {
 
       var index, anchor, allAnchors = $('a'),
