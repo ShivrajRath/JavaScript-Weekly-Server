@@ -111,10 +111,13 @@
      * @returns {[[Type]]} [[Description]]
      */
     getArticleSnippets: function (anchor) {
-      // --- td as parent is not selecting whole region, try with tbody---
-      var parent = $(anchor).parent('td') || $(anchor).parent('li');
-      var articleText = this.getArticleTitle(anchor);
+      // Assumes that all anchors are contained within a 'li' or 'table'
+      var liParent = $(anchor).closest('li');
+      var tableParent = $(anchor).closest('table');
       
+      var parent = (liParent.length && liParent) || (tableParent.length && tableParent);
+      var articleText = this.getArticleTitle(anchor);
+
       return parent.text().split('\n').filter(function (item) {
         // Filter empty text nodes and node containing the article text
         return item.trim() && item.indexOf(articleText) === -1;
