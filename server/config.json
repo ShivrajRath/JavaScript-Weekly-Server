@@ -3,6 +3,7 @@
   "latest": "http://javascriptweekly.com/latest",
   "issueRoot": "http://javascriptweekly.com/issues/",
   "identifier": "?utm_source=javascriptweekly&utm_medium=email",
+  "allowedLinks": ["youtube.com"],
   "err": {
     "ERR0": "issue not found",
     "ERR1": "issue title not found",

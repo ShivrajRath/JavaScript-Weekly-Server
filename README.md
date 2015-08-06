@@ -11,6 +11,7 @@
 2. Share it
 3. Auto Categorization/Tagging (Node, Angular etc)
 4. Once parsed save it to db
+5. Youtube video should be shown
 
 ### Feature Must do
 1. Formatting of code in the article
@@ -24,3 +25,6 @@
 1. Use web sockets
 2. No, JS and CSS framework
 3. Use browserify + min + concat
+
+### Api
+1. Add a include list of identifiers e.x: youtube.com

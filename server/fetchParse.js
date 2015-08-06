@@ -64,6 +64,24 @@
     },
 
     /**
+     * Checks if the anchor is in allowed List
+     * @param   {String} anchorHref Anchors Href
+     * @returns {Boolean} Is Anchor valid
+     */
+    inAllowedList: function (anchorHref) {
+      var isValid = false;
+
+      config.allowedLinks.forEach(function (link) {
+        if (anchorHref.indexOf(link) !== -1) {
+          isValid = true;
+          return false;
+        }
+      });
+
+      return isValid;
+    },
+
+    /**
      * Checks if anchor node is a valid article Anchor
      * @param   {Object} anchor Anchor object
      * @returns {Boolean} Is article
@@ -73,7 +91,7 @@
       try {
         var anchorHref = $(anchor).attr('href');
         // Contains the identifier and contains a text
-        isValid = anchorHref && anchorHref.indexOf(config.identifier) !== -1 && $(anchor).text();
+        isValid = (anchorHref && anchorHref.indexOf(config.identifier) !== -1 && $(anchor).text()) || this.inAllowedList(anchorHref);
       } finally {
         return isValid;
       }
@@ -106,25 +124,50 @@
     },
 
     /**
+     * Cleans a text; removes special characters and spaces from the edges
+     * @param   {String}   text  String to be cleaned
+     * @param   {String} clear Text to be removed from the string
+     * @returns {String} Cleaned string
+     */
+    getCleanText: function (text, clear) {
+      return text.replace(clear, '').replace(/^\W+|\W+$/g, '').trim('\n');
+    },
+
+    /**
      * Get's an article summary text and others
      * @param   {[[Type]]} anchor [[Description]]
      * @returns {[[Type]]} [[Description]]
      */
     getArticleSnippets: function (anchor) {
+      var self = this;
       // Assumes that all anchors are contained within a 'li' or 'table'
       var liParent = $(anchor).closest('li');
       var tableParent = $(anchor).closest('table');
-      
+
       var parent = (liParent.length && liParent) || (tableParent.length && tableParent);
       var articleText = this.getArticleTitle(anchor);
 
-      return parent.text().split('\n').filter(function (item) {
-        // Filter empty text nodes and node containing the article text
-        return item.trim() && item.indexOf(articleText) === -1;
-      }).map(function (item) {
-        // Trim spaces
-        return item.trim();
-      });
+      // If 'li' snippet is children content
+      if (liParent.length && liParent) {
+        var children = parent.children(),
+          snippetArr = [],
+          text;
+
+        for (var index = 0; index < children.length; index++) {
+          text = $(children[index]).text().trim('\n');
+          if (text) {
+            // Removes the ar
+            snippetArr.push(this.getCleanText(text, articleText));
+          }
+        }
+        return snippetArr;
+      } else { // for 'table' content
+        return parent.text().split('\n').filter(function (item) {
+          return self.getCleanText(item, articleText);
+        }).map(function (item) {
+          return self.getCleanText(item, articleText);
+        });
+      }
     },
 
     /**
