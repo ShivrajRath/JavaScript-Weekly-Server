@@ -28,3 +28,6 @@
 
 ### Api
 1. Add a include list of identifiers e.x: youtube.com
+2. Provide possible summary text
+3. Provide possible source text
+4. Provide tags

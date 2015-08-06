@@ -105,6 +105,18 @@
 
     },
 
+    getTags: function () {
+
+    },
+
+    getSummaryText: function () {
+
+    },
+
+    getSourceText: function () {
+
+    },
+
     /**
      * Gets article title from the anchor
      * @param   {Object} anchor
@@ -154,10 +166,9 @@
           text;
 
         for (var index = 0; index < children.length; index++) {
-          text = $(children[index]).text().trim('\n');
+          text = this.getCleanText($(children[index]).text(), articleText);
           if (text) {
-            // Removes the ar
-            snippetArr.push(this.getCleanText(text, articleText));
+            snippetArr.push(text);
           }
         }
         return snippetArr;
