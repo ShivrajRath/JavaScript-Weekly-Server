@@ -145,6 +145,37 @@
       return text.replace(clear, '').replace(/^\W+|\W+$/g, '').trim('\n');
     },
 
+
+    /**
+     * Predicts article text, tags and publisher
+     * @param   {Array} snippetArr Array containing snippet texts
+     * @returns {Object} Article Text, tags and publisher
+     */
+    predictDetails: function (snippetArr) {
+
+      var article = {
+          text: '',
+          tags: [],
+          publisher: '',
+          unpredicted: []
+        },
+        length = snippetArr.length;
+
+      snippetArr.forEach(function (arrText, index) {
+        if (arrText.length > config.minArticleSummaryLen && arrText > article.text) {
+          article.text = arrText;
+        } else if (length <= 2 || index === length - 1) {
+          article.publisher = arrText;
+        } else if (index < length && !arrText.match(/\s/)) {
+          article.tags.push(arrText);
+        } else {
+          article.unpredicted.push(arrText);
+        }
+      });
+
+      return article;
+    },
+
     /**
      * Get's an article summary text and others
      * @param   {[[Type]]} anchor [[Description]]
@@ -159,10 +190,11 @@
       var parent = (liParent.length && liParent) || (tableParent.length && tableParent);
       var articleText = this.getArticleTitle(anchor);
 
+      var snippetArr = [];
+
       // If 'li' snippet is children content
       if (liParent.length && liParent) {
         var children = parent.children(),
-          snippetArr = [],
           text;
 
         for (var index = 0; index < children.length; index++) {
@@ -171,14 +203,15 @@
             snippetArr.push(text);
           }
         }
-        return snippetArr;
       } else { // for 'table' content
-        return parent.text().split('\n').filter(function (item) {
+        snippetArr = parent.text().split('\n').filter(function (item) {
           return self.getCleanText(item, articleText);
         }).map(function (item) {
           return self.getCleanText(item, articleText);
         });
       }
+
+      return this.predictDetails(snippetArr);
     },
 
     /**
