@@ -8,12 +8,14 @@
 5. Most Popular
 6. Settings (Fonts, Color Scheme)
 7. Report an issue
+8. Random issue
+9. Random articles
 
 ### Features
 1. Favourite link
 2. Share it
 3. Auto Categorization/Tagging (Node, Angular etc)
-4. Once parsed save it to db
+4. Once parsed save it to db/file storage
 5. Youtube video should be shown
 6. Formatting of code in the article
 7. Show random articles (perhaps 5)
@@ -42,3 +44,7 @@
 3. Provide possible source text
 4. Provide tags
 5. Add a issue URL node
+
+### Others
+1. Make a npm module for the parser
+2. Add filter for other weekly's

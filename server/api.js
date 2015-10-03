@@ -1,28 +1,38 @@
 /**
  * Functions for api fetch
  */
-(function () {
+(function() {
   'use strict';
 
-  var path = require('path'),
-    fetchParse = require('./fetchParse');
+  var weekly = require('./jsweekly');
 
-  module.exports = function (app) {
-    app.get('/', function (req, res) {
-      res.sendFile(path.join(__dirname + '/public/index.html'));
-    });
-
+  module.exports = function(app) {
     // Get's latest issue number
-    app.get('/latest', function (req, res) {
-      fetchParse.latest(function (obj) {
+    app.get('/latest', function(req, res) {
+      weekly.latest(function(obj) {
         res.send(obj);
       });
     });
 
-    app.get('/issue/:issuenumber', function (req, res) {
-      fetchParse.issue(req.params.issuenumber, function (obj) {
+    app.get('/issue/:issuenumber', function(req, res) {
+      weekly.issue(req.params.issuenumber, function(obj) {
         res.send(obj);
       });
+    });
+
+    // Get's HTML content from a page URL
+    app.get('/getHTML', function(req, res) {
+      // URL sent to be parsed
+      var url = req.query.url;
+      if (url) {
+        weekly.fetchContent(url, function(obj) {
+          res.send(obj);
+        });
+      } else {
+        res.status(500).json({
+          error: 'URL not sent'
+        });
+      }
     });
 
   };

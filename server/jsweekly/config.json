@@ -1,0 +1,13 @@
+{
+  "latest": "http://javascriptweekly.com/latest",
+  "issueRoot": "http://javascriptweekly.com/issues/",
+  "identifier": "?utm_source=javascriptweekly&utm_medium=email",
+  "allowedLinks": ["youtube.com"],
+  "minArticleSummaryLen": 25,
+  "err": {
+    "ERR0": "issue not found",
+    "ERR1": "issue title not found",
+    "ERR2": "parsing failed",
+    "ERR3": "issue date not found"
+  }
+}

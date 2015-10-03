@@ -4,3 +4,4 @@ bower_components/
 **/*.log/
 dist/
 .tmp/
+TODO.md
