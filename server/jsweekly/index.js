@@ -6,6 +6,8 @@
   'use strict';
 
   var $ = {},
+    fs = require('fs'),
+    path = require('path'),
     request = require('request'),
     cheerio = require('cheerio'),
     unfluff = require('unfluff'),
@@ -216,6 +218,32 @@
       }
 
       return articles;
+    },
+
+    /**
+     * Checks if an issue is already cached, if so, returns the issue object
+     * @param  {String}   issueNo Issue Number
+     * @param  {Function} cb  Callback function to return the issue status
+     */
+    isIssueCached: function(issueNo, cb) {
+      fs.readFile(path.join(__dirname, 'filecache/' + issueNo + '.json'), 'utf8', function(err, data) {
+        if (err) {
+          cb(err);
+        } else {
+          cb(null, data);
+        }
+      });
+    },
+
+    /**
+     * Creates a copy of parsed issue. This avoids further web scrapping
+     */
+    cacheIssue: function(issueNo, issueObj) {
+      fs.writeFile(path.join(__dirname, 'filecache/' + issueNo + '.json'), JSON.stringify(issueObj), function(err) {
+        if (err) {
+          return console.log(err);
+        }
+      });
     }
   };
 
@@ -227,21 +255,34 @@
      * @param {Object} cb issue accessing callback
      */
     issue: function(issueNumber, cb) {
-      var fetchURL = issueNumber ? config.issueRoot + issueNumber : config.latest;
+      var issueObj;
+      var fetchURL = (issueNumber && issueNumber !== 'latest') ? config.issueRoot + issueNumber : config.latest;
 
-      _private.fetch(fetchURL, function(err, html) {
-        if (err) {
-          cb({
-            error: err
-          });
+      _private.isIssueCached(issueNumber, function(err, data) {
+        // If the issue is already cached, retun the cache data
+        if (data) {
+          cb(JSON.parse(data));
         } else {
-          // Set the parser
-          _private.loadParser(html);
-          cb({
-            issueNumber: _private.getIssueNumber(),
-            issueDate: _private.getIssueDate(),
-            issueURL: fetchURL,
-            articles: _private.getArticles()
+          // Else fetch fresh data
+          _private.fetch(fetchURL, function(err, html) {
+            if (err) {
+              cb({
+                error: err
+              });
+            } else {
+              // Set the parser
+              _private.loadParser(html);
+              issueObj = {
+                issueNumber: _private.getIssueNumber(),
+                issueDate: _private.getIssueDate(),
+                issueURL: fetchURL,
+                articles: _private.getArticles()
+              };
+
+              // Cache the fetched issue
+              _private.cacheIssue(issueObj.issueNumber, issueObj);
+              cb(issueObj);
+            }
           });
         }
       });

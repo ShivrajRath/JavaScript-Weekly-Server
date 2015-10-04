@@ -7,6 +7,23 @@
   var weekly = require('./jsweekly');
 
   module.exports = function(app) {
+    /**
+     * Allows access to all origin
+     */
+    app.all('*', function(req, res, next) {
+
+      // Specify the origin if you want to control the CORS origin
+      res.header('Access-Control-Allow-Origin', '*');
+
+      res.header('Access-Control-Allow-Methods', 'GET');
+
+      res.header('Access-Control-Allow-Headers', 'Content-Type');
+
+      // Uncomment to allow with credentials. You'd need to give specific origin in that case
+      //res.header('Access-Control-Allow-Credentials', true);
+      next();
+    });
+
     // Get's latest issue number
     app.get('/latest', function(req, res) {
       weekly.latest(function(obj) {
