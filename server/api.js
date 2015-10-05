@@ -15,7 +15,7 @@
       // Specify the origin if you want to control the CORS origin
       res.header('Access-Control-Allow-Origin', '*');
 
-      res.header('Access-Control-Allow-Methods', 'GET');
+      res.header('Access-Control-Allow-Methods', 'GET', 'POST');
 
       res.header('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -31,8 +31,20 @@
       });
     });
 
+    /**
+     * Gets an issue
+     */
     app.get('/issue/:issuenumber', function(req, res) {
       weekly.issue(req.params.issuenumber, function(obj) {
+        res.send(obj);
+      });
+    });
+
+    /**
+     * Random count of articles
+     */
+    app.get('/random/:count', function(req, res) {
+      weekly.random(req.params.count, function(obj) {
         res.send(obj);
       });
     });

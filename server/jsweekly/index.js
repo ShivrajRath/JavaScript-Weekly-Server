@@ -7,6 +7,7 @@
 
   var $ = {},
     fs = require('fs'),
+    _ = require('lodash'),
     path = require('path'),
     request = require('request'),
     cheerio = require('cheerio'),
@@ -225,12 +226,12 @@
      * @param  {String}   issueNo Issue Number
      * @param  {Function} cb  Callback function to return the issue status
      */
-    isIssueCached: function(issueNo, cb) {
+    getCachedIssue: function(issueNo, cb) {
       fs.readFile(path.join(__dirname, 'filecache/' + issueNo + '.json'), 'utf8', function(err, data) {
         if (err) {
           cb(err);
         } else {
-          cb(null, data);
+          cb(null, JSON.parse(data));
         }
       });
     },
@@ -242,6 +243,45 @@
       fs.writeFile(path.join(__dirname, 'filecache/' + issueNo + '.json'), JSON.stringify(issueObj), function(err) {
         if (err) {
           return console.log(err);
+        }
+      });
+    },
+
+    /**
+     * Returns the file names of
+     * @param  {Function} cb [description]
+     * @return {[type]}      [description]
+     */
+    getCachedFileNames: function(cb) {
+      fs.readdir(path.join(__dirname, 'filecache'), cb);
+    },
+
+    /**
+     * Fetches some random articles
+     */
+    random: function(count, cb) {
+      var issueCount = Math.round(count / (2));
+      var articleCollection = [];
+      var fileNames = [];
+      var self = this;
+
+      this.getCachedFileNames(function(err, files) {
+        if (!err) {
+          // Picks random files
+          fileNames = _.sample(files, issueCount);
+
+          _.forEach(fileNames, function(file, index) {
+            // Gets cached files content
+            self.getCachedIssue(file.replace('.json', ''), function(err, data) {
+              if (data) {
+                // Pushes the article to the collection
+                articleCollection.push(_.sample(data.articles, 2));
+              }
+              if (index + 1 === fileNames.length) {
+                cb(articleCollection);
+              }
+            });
+          });
         }
       });
     }
@@ -258,10 +298,10 @@
       var issueObj;
       var fetchURL = (issueNumber && issueNumber !== 'latest') ? config.issueRoot + issueNumber : config.latest;
 
-      _private.isIssueCached(issueNumber, function(err, data) {
+      _private.getCachedIssue(issueNumber, function(err, data) {
         // If the issue is already cached, retun the cache data
         if (data) {
-          cb(JSON.parse(data));
+          cb(data);
         } else {
           // Else fetch fresh data
           _private.fetch(fetchURL, function(err, html) {
@@ -313,6 +353,15 @@
           cb(parsedObj);
         }
       });
+    },
+
+    /**
+     * Gets random articles from random isues
+     * @param  {String}   count Count of aritlces
+     * @param  {Function} cb  callback with data
+     */
+    random: function(count, cb) {
+      _private.random(count, cb);
     }
 
   };
