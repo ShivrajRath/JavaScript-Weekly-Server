@@ -260,7 +260,7 @@
      * Fetches some random articles
      */
     random: function(count, cb) {
-      var issueCount = Math.round(count / (2));
+      var issueCount = Math.round(count/2);
       var articleCollection = [];
       var fileNames = [];
       var self = this;
@@ -275,10 +275,10 @@
             self.getCachedIssue(file.replace('.json', ''), function(err, data) {
               if (data) {
                 // Pushes the article to the collection
-                articleCollection.push(_.sample(data.articles, 2));
+                articleCollection.push(_.sample(data.articles, 3));
               }
               if (index + 1 === fileNames.length) {
-                cb(articleCollection);
+                cb(_.flatten(articleCollection));
               }
             });
           });
