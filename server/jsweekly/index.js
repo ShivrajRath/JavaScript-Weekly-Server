@@ -11,8 +11,8 @@
     path = require('path'),
     request = require('request'),
     cheerio = require('cheerio'),
-    unfluff = require('unfluff'),
-    config = require('./config.json');
+    config = require('./config.json'),
+    read = require('node-readability');
 
   var _private = {
     /**
@@ -260,7 +260,7 @@
      * Fetches some random articles
      */
     random: function(count, cb) {
-      var issueCount = Math.round(count/2);
+      var issueCount = Math.round(count / 2);
       var articleCollection = [];
       var fileNames = [];
       var self = this;
@@ -342,15 +342,20 @@
      * @param  {Function} cb  Callback function
      */
     fetchContent: function(url, cb) {
-      var parsedObj = {};
-      _private.fetch(url, function(err, html) {
+      read(url, function(err, article) {
         if (err) {
           cb({
             error: err
           });
         } else {
-          parsedObj = unfluff(html);
-          cb(parsedObj);
+          cb({
+            title: article.title,
+            url: url,
+            content: article.content
+          });
+
+          // Close article to clean up jsdom and prevent leaks
+          article.close();
         }
       });
     },
