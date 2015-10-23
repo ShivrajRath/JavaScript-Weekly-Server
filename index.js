@@ -7,7 +7,10 @@
 
   // Node dependencies
   var express = require('express'),
-    path = require('path');
+    path = require('path'),
+    weekly = require('./server/jsweekly');
+
+    weekly.startCron();
 
   // Creation of app
   var app = express();

@@ -12,9 +12,12 @@
     request = require('request'),
     cheerio = require('cheerio'),
     config = require('./config.json'),
+    CronJob = require('cron').CronJob,
     read = require('node-readability');
 
   var _private = {
+    // Latest issue number, set by cron job
+    latestIssueNumber: null,
     /**
      * Converts html to parsable object
      * @param   {String} html HTML to be parsed
@@ -240,11 +243,13 @@
      * Creates a copy of parsed issue. This avoids further web scrapping
      */
     cacheIssue: function(issueNo, issueObj) {
-      fs.writeFile(path.join(__dirname, 'filecache/' + issueNo + '.json'), JSON.stringify(issueObj), function(err) {
-        if (err) {
-          return console.log(err);
-        }
-      });
+      if (!isNaN(issueNo)) {
+        fs.writeFile(path.join(__dirname, 'filecache/' + issueNo + '.json'), JSON.stringify(issueObj), function(err) {
+          if (err) {
+            return console.log(err);
+          }
+        });
+      }
     },
 
     /**
@@ -319,8 +324,13 @@
                 articles: _private.getArticles()
               };
 
+              if (fetchURL === config.latest) {
+                _private.latestIssueNumber = issueObj.latest;
+              }
+
               // Cache the fetched issue
               _private.cacheIssue(issueObj.issueNumber, issueObj);
+
               cb(issueObj);
             }
           });
@@ -333,7 +343,7 @@
      * @param {Object} cb Latest issue accessing callback
      */
     latest: function(cb) {
-      this.issue(null, cb);
+      this.issue(_private.latestIssueNumber, cb);
     },
 
     /**
@@ -367,6 +377,27 @@
      */
     random: function(count, cb) {
       _private.random(count, cb);
+    },
+
+    /**
+     * Starts the cron job
+     */
+    startCron: function() {
+      var self = this;
+      var job = new CronJob({
+        cronTime: '00 00 */2 * * *',
+        onTick: function() {
+          console.log('Fetching latest issue');
+          // Tries to fetches latest issue every couple of hour
+          self.issue('latest', function() {});
+        },
+        start: false,
+        timeZone: 'America/Los_Angeles'
+      });
+      job.start();
+      console.log('Fetching latest issue on cron start');
+      // Fetch the latest issue on first run itself
+      this.issue('latest', function() {});
     }
 
   };
